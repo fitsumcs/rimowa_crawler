@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install necessary system dependencies and Chromium
+# Install necessary system dependencies for Pyppeteer/Chromium
 RUN apt-get update \
     && apt-get install -y \
         libasound2 \
@@ -53,8 +53,10 @@ RUN apt-get update \
         xfonts-75dpi \
         xfonts-scalable \
         x11-apps \
-    && apt-get install -y chromium \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Chromium
+RUN apt-get update && apt-get install -y chromium
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
