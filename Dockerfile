@@ -56,8 +56,13 @@ RUN apt-get update \
     && apt-get install -y chromium \
     && rm -rf /var/lib/apt/lists/*
 
+
+
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+#Install  pyppeteer browser
+RUN pyppeteer-install
 
 # Run the Python script when the container launches
 CMD ["python", "main.py"]
