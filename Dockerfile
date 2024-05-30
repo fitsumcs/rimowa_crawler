@@ -53,10 +53,8 @@ RUN apt-get update \
         xfonts-75dpi \
         xfonts-scalable \
         x11-apps \
+    && apt-get install -y chromium \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Chromium
-RUN apt-get update && apt-get install -y chromium
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt

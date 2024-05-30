@@ -38,7 +38,19 @@ async def fetch_page_content(url):
         "--disable-software-rasterizer",
         "--disable-dev-shm-usage",
         "--no-zygote",
-        "--single-process"
+        "--single-process",
+        "--disable-web-security",
+        "--disable-extensions",
+        "--disable-software-rasterizer",
+        "--disable-background-networking",
+        "--disable-default-apps",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--mute-audio",
+        "--no-first-run",
+        "--safebrowsing-disable-auto-update",
+        "--enable-automation",
+        "--disable-infobars"
     ])
     page = await browser.newPage()
     content = ""
