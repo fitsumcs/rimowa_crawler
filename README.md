@@ -20,8 +20,8 @@ This project scrapes product data from a specified URL(Rimowa) and indexes it in
    Create a `.env` file in the root directory of the project with the following content:
 
    ```env
-   RUB_URL=https://api.exchangerate-api.com/v4/latest/USD
-   SCRAPER_URL=https://www.rimowa.com/us/en/collection
+   RUB_URL=https://open.er-api.com/v6/latest/EUR
+   SCRAPER_URL=https://www.rimowa.com/fr/en/all-luggage
    ALGOLIA_APP_ID=your_algolia_app_id
    ALGOLIA_API_KEY=your_algolia_api_key
    ALGOLIA_INDEX_NAME=your_algolia_index_name
