@@ -11,7 +11,7 @@ This project scrapes product data from a specified URL(Rimowa) and indexes it in
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/yourusername/your-repo.git
+   git https://github.com/fitsumcs/rimowa_crawler.git
    cd your-repo
    ```
 
