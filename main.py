@@ -82,7 +82,7 @@ def parse_product(product, ruble_rate):
     product_variants = [{
         "id": product.css('::attr(data-itemvariant)').get(),
         "size": product.css('::attr(data-itemvariant)').get(),
-        "price": float(product_price.replace(',', '.')) if product_price else None,
+        "price": float(product_price.replace(',', '.')) * 1.2 * ruble_rate if product_price else None,
         "type": "Size"
     }]
     objectID = str(uuid.uuid4())
@@ -97,7 +97,7 @@ def parse_product(product, ruble_rate):
             "name": brand,
             "description": brand
         },
-        "gender": [],
+        "gender": ["unisex"],
         "slug": f"{brand.lower().replace(' ', '-')}-{brand}-{brand}-{objectID}",
         "images": product_images if product_images else [],
         "variants": product_variants if product_variants else [],
