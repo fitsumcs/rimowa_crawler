@@ -76,10 +76,10 @@ async def fetch_page_content_with_scroll(url):
 
             # Check if the placeholder element exists
             placeholder = await page.querySelector('.infinite-scroll-placeholder')
-            # await page.waitFor(1000)
             
+            # If the placeholder is gone, stop scrolling
             if not placeholder or await page.evaluate('(element) => element.textContent.trim() === ""', placeholder):
-                break  # If the placeholder is gone, stop scrolling
+                break 
         content = await page.content()
     except Exception as e:
         print("An error occurred:", e)
