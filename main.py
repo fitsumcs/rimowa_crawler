@@ -6,16 +6,22 @@ from pyppeteer import launch
 from dotenv import load_dotenv
 from scrapy.http import HtmlResponse
 from algoliasearch.search_client import SearchClient
+import httpx
+import requests
+
+
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Get environment variables
 RUB_URL = os.getenv("RUB_URL")
-SCRAPER_URL = os.getenv("SCRAPER_URL")
+SCRAPER_BASE_URL = os.getenv("SCRAPER_BASE_URL")
 ALGOLIA_APP_ID = os.getenv("ALGOLIA_APP_ID")
 ALGOLIA_API_KEY = os.getenv("ALGOLIA_API_KEY")
 ALGOLIA_INDEX_NAME = os.getenv("ALGOLIA_INDEX_NAME")
+categories = os.getenv('CATEGORIES').split(',')
+
 
 async def fetch_json(url):
     async with aiohttp.ClientSession() as session:
@@ -29,42 +35,20 @@ async def get_ruble_rate():
     else:
         return 0.0
 
+
+
 async def fetch_page_content(url):
-    browser = await launch(headless=True, args=[
-        "--no-sandbox",
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-setuid-sandbox",
-        "--disable-software-rasterizer",
-        "--disable-dev-shm-usage",
-        "--no-zygote",
-        "--single-process",
-        "--disable-web-security",
-        "--disable-extensions",
-        "--disable-software-rasterizer",
-        "--disable-background-networking",
-        "--disable-default-apps",
-        "--disable-sync",
-        "--metrics-recording-only",
-        "--mute-audio",
-        "--no-first-run",
-        "--safebrowsing-disable-auto-update",
-        "--enable-automation",
-        "--disable-infobars"
-    ])
-    page = await browser.newPage()
-    content = ""
     try:
-        await page.goto(url, {'waitUntil': 'domcontentloaded'})
-        await page.waitForSelector('#onetrust-accept-btn-handler', {'timeout': 5000})
-        await page.click('#onetrust-accept-btn-handler')
-        await page.waitFor(1000)
-        content = await page.content()
+        response =  requests.get(url)
+        if response.status_code == 200:
+            return response.text, response.url
+        else:
+            print(f"Failed to fetch content from {url}. Status code: {response.status_code}")
+            return "", None
     except Exception as e:
-        print("An error occurred:", e)
-    finally:
-        await browser.close()
-    return content
+        print(f"An error occurred while fetching content from {url}: {e}")
+        return "", None
+
 
 def parse_product(product, ruble_rate):
     brand = "Rimowa"
@@ -117,15 +101,22 @@ def add_to_algolia(product_list):
     index.save_objects(product_list).wait()
 
 async def main():
-    page_content = await fetch_page_content(SCRAPER_URL)
-    response = HtmlResponse(url=SCRAPER_URL, body=page_content, encoding='utf-8')
-    products = response.css('.grid-tile')
     product_list = []
     ruble_rate = await get_ruble_rate()
 
-    for product in products:
-        product_data = parse_product(product, ruble_rate)
-        product_list.append(product_data)
+    for category in categories:
+        category_url = f"{SCRAPER_BASE_URL}/all-{category}"
+        page_content, _ = await fetch_page_content(category_url)
+
+        if not page_content:
+            continue
+
+        response = HtmlResponse(url=category_url, body=page_content, encoding='utf-8')
+        products = response.css('.grid-tile')
+
+        for product in products:
+            product_data = parse_product(product, ruble_rate)
+            product_list.append(product_data)
 
     add_to_algolia(product_list)
     print("Products added to Algolia index.")

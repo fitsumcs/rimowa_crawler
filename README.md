@@ -21,10 +21,11 @@ This project scrapes product data from a specified URL(Rimowa) and indexes it in
 
    ```env
    RUB_URL=https://open.er-api.com/v6/latest/EUR
-   SCRAPER_URL=https://www.rimowa.com/fr/en/all-luggage
+   SCRAPER_BASE_URL=https://www.rimowa.com/fr/en
    ALGOLIA_APP_ID=your_algolia_app_id
    ALGOLIA_API_KEY=your_algolia_api_key
    ALGOLIA_INDEX_NAME=your_algolia_index_name
+   CATEGORIES=luggage,bags,accessories
    ```
 
    Replace the placeholder values with your actual environment variables.
