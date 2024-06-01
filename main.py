@@ -157,7 +157,8 @@ async def main():
 
         for product in products:
             product_data = parse_product(product, ruble_rate)
-            product_list.append(product_data)
+            if product_data.get('id') is not None:
+               product_list.append(product_data)
 
     add_to_algolia(product_list)
     print("Products added to Algolia index.")
