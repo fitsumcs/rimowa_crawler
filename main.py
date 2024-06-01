@@ -64,7 +64,7 @@ async def fetch_page_content_with_scroll(url):
         await page.click('#onetrust-accept-btn-handler')
         await page.waitFor(1000)
         
-        # Scroll down repeatedly until the placeholder disappears
+        # Scroll up and down repeatedly until the placeholder disappears
         while True:
             # Scroll down
             await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
@@ -74,11 +74,11 @@ async def fetch_page_content_with_scroll(url):
             await page.evaluate('window.scrollTo(0, 0)')
             await page.waitFor(1000) 
 
-            # Check if the placeholder element exists
+            # grab the placeholder element
             placeholder = await page.querySelector('.infinite-scroll-placeholder')
             
             # If the placeholder is gone, stop scrolling
-            if not placeholder or await page.evaluate('(element) => element.textContent.trim() === ""', placeholder):
+            if not placeholder:
                 break 
         content = await page.content()
     except Exception as e:
