@@ -6,8 +6,6 @@ from pyppeteer import launch
 from dotenv import load_dotenv
 from scrapy.http import HtmlResponse
 from algoliasearch.search_client import SearchClient
-import httpx
-import requests
 
 
 
@@ -35,19 +33,59 @@ async def get_ruble_rate():
     else:
         return 0.0
 
-
-
-async def fetch_page_content(url):
+async def fetch_page_content_with_scroll(url):
+    browser = await launch(headless=True, args=[
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-setuid-sandbox",
+        "--disable-software-rasterizer",
+        "--disable-dev-shm-usage",
+        "--no-zygote",
+        "--single-process",
+        "--disable-web-security",
+        "--disable-extensions",
+        "--disable-software-rasterizer",
+        "--disable-background-networking",
+        "--disable-default-apps",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--mute-audio",
+        "--no-first-run",
+        "--safebrowsing-disable-auto-update",
+        "--enable-automation",
+        "--disable-infobars"
+    ])
+    page = await browser.newPage()
+    content = ""
     try:
-        response =  requests.get(url)
-        if response.status_code == 200:
-            return response.text, response.url
-        else:
-            print(f"Failed to fetch content from {url}. Status code: {response.status_code}")
-            return "", None
+        await page.goto(url, {'waitUntil': 'networkidle2'})
+        await page.waitForSelector('#onetrust-accept-btn-handler', {'timeout': 5000})
+        await page.click('#onetrust-accept-btn-handler')
+        await page.waitFor(1000)
+        
+        # Scroll down repeatedly until the placeholder disappears
+        while True:
+            # Scroll down
+            await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+            await page.waitFor(1000)  
+            
+            # Scroll up
+            await page.evaluate('window.scrollTo(0, 0)')
+            await page.waitFor(1000) 
+
+            # Check if the placeholder element exists
+            placeholder = await page.querySelector('.infinite-scroll-placeholder')
+            # await page.waitFor(1000)
+            
+            if not placeholder or await page.evaluate('(element) => element.textContent.trim() === ""', placeholder):
+                break  # If the placeholder is gone, stop scrolling
+        content = await page.content()
     except Exception as e:
-        print(f"An error occurred while fetching content from {url}: {e}")
-        return "", None
+        print("An error occurred:", e)
+    finally:
+        await browser.close()
+    return content, url
 
 
 def parse_product(product, ruble_rate):
@@ -106,13 +144,16 @@ async def main():
 
     for category in categories:
         category_url = f"{SCRAPER_BASE_URL}/all-{category}"
-        page_content, _ = await fetch_page_content(category_url)
+        page_content, _ = await fetch_page_content_with_scroll(category_url)
 
+       
         if not page_content:
             continue
 
         response = HtmlResponse(url=category_url, body=page_content, encoding='utf-8')
         products = response.css('.grid-tile')
+
+        print(f"{len(products)} Products fetched  for {category} category")
 
         for product in products:
             product_data = parse_product(product, ruble_rate)
